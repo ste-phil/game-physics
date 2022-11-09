@@ -51,12 +51,12 @@ private:
 	//Integrate position according to chosen integration method
 	void integratePosition(Vec3 acceleration, Vec3& velocity, Vec3& position, Vec3 otherPos,
 		const Spring& spring, const float mass, float dt);
-	
+	Vec3 calculateElasticForce(const MassPoint& mp1, const MassPoint& mp2, const Spring& spring);
 	
 	// Data Attributes
 	float m_fMass;
 	float m_fStiffness;
-	float m_fDamping;
+	float m_fDamping = .001f;
 	IntegrationMethod m_iIntegrator;
 
 	bool m_useGravity;

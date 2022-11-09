@@ -28,14 +28,14 @@ namespace GamePhysics {
 				pos = pos + vTmp * dt;
 
 				//calculate new elastic forces at xTmp and vTmp
-				auto dir = otherPos - pos;
+				auto dir = pos - otherPos;
 				auto length = norm(dir);
 				auto normDir = dir / length;
 
 				auto force = -spring.stiffness * (length - spring.restLength) * normDir;
 				auto aTmp = force / mass;
 
-				vel = vel + (acc + aTmp) * dt;
+				vel = vel + (aTmp) * dt;
 			}
 		}
 	}

@@ -11,7 +11,7 @@ void MSSS::initUI(DrawingUtilitiesClass* DUC) {
 
 	TwAddVarRW(DUC->g_pTweakBar, "Mass", TW_TYPE_FLOAT, &m_fMass, "min=1");
 	TwAddVarRW(DUC->g_pTweakBar, "Stiffness", TW_TYPE_FLOAT, &m_fStiffness, "min=0.01 step=0.01");
-	TwAddVarRW(DUC->g_pTweakBar, "Damping factor", TW_TYPE_FLOAT, &m_fDamping, "min=0.01 step=0.01");
+	TwAddVarRW(DUC->g_pTweakBar, "Damping factor", TW_TYPE_FLOAT, &m_fDamping, "min=0.000 step=0.001");
 
 	TwAddVarRW(DUC->g_pTweakBar, "Ground Collider", TW_TYPE_BOOLCPP, &m_useGroundCollider, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Gravity", TW_TYPE_BOOLCPP, &m_useGravity, "");
@@ -46,8 +46,8 @@ void MSSS::notifyCaseChanged(int testCase) {
 
 		setMass(10);
 		setStiffness(40);
-		const float defaultJointDistance = .2f;
-		const int defaultLength = .29f;
+		const float defaultJointDistance = .4f;
+		const float defaultLength = .29f;
 
 		int massPointIdx = 0;
 		for (int i = 0; i < 5; i++)
@@ -96,7 +96,7 @@ void MSSS::reset() {
 void MSSS::drawFrame(ID3D11DeviceContext* pd3dImmediateContext) {
 	DUC->setUpLighting(Vec3(), 0.4 * Vec3(1, 1, 1), 100, 0.6 * Vec3(0.97, 0.86, 1));
 	
-	const float sphereSize = .05f;
+	const float sphereSize = .01f;
 	for (size_t i = 0; i < m_massPoints.size(); i++)
 	{
 		DUC->drawSphere(m_massPoints[i].position, Vec3(sphereSize));
@@ -115,28 +115,13 @@ void MSSS::drawFrame(ID3D11DeviceContext* pd3dImmediateContext) {
 
 
 void MSSS::externalForcesCalculations(float timeElapsed) {
-	cout << "Simulation external " << timeElapsed << endl;
+	//cout << "Simulation external " << timeElapsed << endl;
 
-	for (size_t i = 0; i < m_massPoints.size(); i++)
-	{
-		auto& mp = m_massPoints[i];
-
-		/*if (m_useGravity)
-			integratePosition(GamePhysics::GRAVITY, mp.velocity, mp.position, timeElapsed);*/
-	
-		const float groundPlaneY = -1.0f;
-		const float bounceDamping = .5f;
-		if (m_useGroundCollider && mp.position.y < groundPlaneY) {
-			mp.velocity.y = -mp.velocity.y * bounceDamping;
-			mp.position.y = groundPlaneY;
-		}
-	}
-
-
+	m_externalForce = m_useGravity ? GRAVITY : Vec3(0, 0, 0);
 }
 
 void MSSS::simulateTimestep(float timeStep) {
-	cout << "Simulation internal " << timeStep << endl;
+	//cout << "Simulation internal " << timeStep << endl;
 
 	for (size_t i = 0; i < m_springs.size(); i++)
 	{
@@ -145,17 +130,12 @@ void MSSS::simulateTimestep(float timeStep) {
 		//calculate spring force
 		auto& mp1 = m_massPoints[spring.massPointIndex1];
 		auto& mp2 = m_massPoints[spring.massPointIndex2];
+		
+		auto force = calculateElasticForce(mp1, mp2, spring);
+		auto externalForce = m_externalForce;
 
-		// 1 --> 2
-		auto dir = mp2.position - mp1.position;
-		auto length = norm(dir);
-		auto normDir = dir / length;
-
-		auto force = -spring.stiffness * (length - spring.restLength) * normDir;
-
-		auto acc = force / mp1.mass;
-		auto acc1 = -acc;
-		auto acc2 = acc;
+		auto acc1 = (-force + externalForce) / mp1.mass;
+		auto acc2 = (force + externalForce) / mp1.mass;
 
 		/*cout << "Length: " << length << endl;
 		cout << "Force: " << force << endl;
@@ -165,7 +145,23 @@ void MSSS::simulateTimestep(float timeStep) {
 		integratePosition(acc1, mp1.velocity, mp1.position, mp2.position, spring, mp1.mass, timeStep);
 		integratePosition(acc2, mp2.velocity, mp2.position, mp1.position, spring, mp2.mass, timeStep);
 	}
+
+	for (size_t i = 0; i < m_massPoints.size(); i++)
+	{
+		auto& mp = m_massPoints[i];
+
+		mp.velocity *= (1 - m_fDamping);
+
+		const float groundPlaneY = -1.0f;
+		const float bounceDamping = .5f;
+		if (m_useGroundCollider && mp.position.y < groundPlaneY) {
+			mp.velocity.y = -mp.velocity.y * bounceDamping;
+			mp.position.y = groundPlaneY;
+		}
+
+	}
 }
+
 
 void MSSS::integratePosition(Vec3 acceleration, Vec3& velocity, Vec3& position, Vec3 otherPos, 
 		const Spring& spring, const float mass, float dt) {
@@ -183,6 +179,16 @@ void MSSS::integratePosition(Vec3 acceleration, Vec3& velocity, Vec3& position, 
 	}
 }
 
+Vec3 MSSS::calculateElasticForce(const MassPoint& mp1, const MassPoint& mp2, const Spring& spring) {
+	auto dir = mp2.position - mp1.position;
+	auto length = norm(dir);
+	auto normDir = dir / length;
+
+	auto force = -spring.stiffness * (length - spring.restLength) * normDir;
+
+	return force;
+}
+
 
 #pragma endregion
 
@@ -197,7 +203,7 @@ int MSSS::addMassPoint(Vec3 position, Vec3 Velocity, bool isFixed) {
 	MassPoint p = isFixed ? MassPoint(position) : MassPoint(m_fMass, Velocity, position);
 	m_massPoints.push_back(p);
 
-	return m_massPoints.size() - 1;
+	return (int) (m_massPoints.size() - 1);
 }
 
 void MSSS::addSpring(int masspoint1, int masspoint2, float initialLength) {
@@ -206,11 +212,11 @@ void MSSS::addSpring(int masspoint1, int masspoint2, float initialLength) {
 }
 
 int MSSS::getNumberOfMassPoints() {
-	return m_massPoints.size();
+	return (int) m_massPoints.size();
 }
 
 int MSSS::getNumberOfSprings() {
-	return m_springs.size();
+	return (int) m_springs.size();
 }
 
 Vec3 MSSS::getPositionOfMassPoint(int index) {
