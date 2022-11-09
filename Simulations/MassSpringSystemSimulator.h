@@ -1,6 +1,7 @@
 #ifndef MASSSPRINGSYSTEMSIMULATOR_h
 #define MASSSPRINGSYSTEMSIMULATOR_h
 #include "Simulator.h"
+#include "Entities.h"
 
 // Do Not Change
 #define EULER 0
@@ -8,8 +9,9 @@
 #define MIDPOINT 2
 // Do Not Change
 
+using namespace GamePhysics::Entities;
 
-class MassSpringSystemSimulator:public Simulator{
+class MassSpringSystemSimulator: public Simulator {
 public:
 	// Construtors
 	MassSpringSystemSimulator();
@@ -17,13 +19,16 @@ public:
 	// UI Functions
 	const char * getTestCasesStr();
 	void initUI(DrawingUtilitiesClass * DUC);
-	void reset();
-	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
 	void notifyCaseChanged(int testCase);
-	void externalForcesCalculations(float timeElapsed);
-	void simulateTimestep(float timeStep);
 	void onClick(int x, int y);
 	void onMouse(int x, int y);
+
+	// Simulation Funcion
+	void reset();
+	void drawFrame(ID3D11DeviceContext* pd3dImmediateContext);
+	void externalForcesCalculations(float timeElapsed);
+	void simulateTimestep(float timeStep);
+
 
 	// Specific Functions
 	void setMass(float mass);
@@ -39,15 +44,27 @@ public:
 	
 	// Do Not Change
 	void setIntegrator(int integrator) {
-		m_iIntegrator = integrator;
+		m_iIntegrator = static_cast<IntegrationMethod>(integrator);
 	}
 
 private:
+	//Integrate position according to chosen integration method
+	void integratePosition(Vec3 acceleration, Vec3& velocity, Vec3& position, Vec3 otherPos,
+		const Spring& spring, const float mass, float dt);
+	
+	
 	// Data Attributes
 	float m_fMass;
 	float m_fStiffness;
 	float m_fDamping;
-	int m_iIntegrator;
+	IntegrationMethod m_iIntegrator;
+
+	bool m_useGravity;
+	bool m_useGroundCollider;
+
+
+	std::vector<MassPoint> m_massPoints;
+	std::vector<Spring> m_springs;
 
 	// UI Attributes
 	Vec3 m_externalForce;

@@ -1190,6 +1190,7 @@ inline void vector3Dim<Scalar>::makeCeil(const vector3Dim<Scalar>& cmp)
     if( cmp.z > z ) z = cmp.z;
 }
 
+
 //--------------------------------------------------------------------------------
 template<class Scalar>
 inline bool vector3Dim<Scalar>::operator < ( const vector3Dim<Scalar>& vec ) const
