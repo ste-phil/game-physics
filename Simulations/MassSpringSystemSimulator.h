@@ -57,6 +57,7 @@ private:
 	float m_fMass;
 	float m_fStiffness;
 	float m_fDamping;
+	float m_fGravityStrength;
 	IntegrationMethod m_iIntegrator;
 
 	bool m_useGravity;

@@ -20,7 +20,7 @@ namespace GamePhysics {
 
 		namespace Midpoint {
 			void integratePositionVelocity(Vec3 acc, Vec3& vel, Vec3& pos, Vec3 otherPos, 
-					const Spring& spring, const float mass, float dt) {
+					const Spring& spring, const float mass, float dt, const Vec3& externalForces) {
 
 				auto xTmp = pos + vel * dt * .5f;
 
@@ -33,7 +33,7 @@ namespace GamePhysics {
 				auto normDir = dir / length;
 
 				auto force = -spring.stiffness * (length - spring.restLength) * normDir;
-				auto aTmp = force / mass;
+				auto aTmp = (force + externalForces) / mass;
 
 				vel = vel + (aTmp) * dt;
 			}

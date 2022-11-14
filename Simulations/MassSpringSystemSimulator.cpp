@@ -12,6 +12,7 @@ void MSSS::initUI(DrawingUtilitiesClass* DUC) {
 	TwAddVarRW(DUC->g_pTweakBar, "Mass", TW_TYPE_FLOAT, &m_fMass, "min=1");
 	TwAddVarRW(DUC->g_pTweakBar, "Stiffness", TW_TYPE_FLOAT, &m_fStiffness, "min=0.01 step=0.01");
 	TwAddVarRW(DUC->g_pTweakBar, "Damping factor", TW_TYPE_FLOAT, &m_fDamping, "min=0.000 step=0.001");
+	TwAddVarRW(DUC->g_pTweakBar, "Gravity strength", TW_TYPE_FLOAT, &m_fGravityStrength, "min=0.0 step=0.1");
 
 	TwAddVarRW(DUC->g_pTweakBar, "Ground Collider", TW_TYPE_BOOLCPP, &m_useGroundCollider, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Gravity", TW_TYPE_BOOLCPP, &m_useGravity, "");
@@ -42,7 +43,7 @@ void MSSS::notifyCaseChanged(int testCase) {
 
 
 		setMass(10);
-		setStiffness(40);
+		setStiffness(80);
 		const float defaultJointDistance = .4f;
 		const float defaultLength = .29f;
 
@@ -112,6 +113,8 @@ MSSS::MassSpringSystemSimulator() {
 	setMass(1.f);
 	setStiffness(.1f);
 	setDampingFactor(.001f);
+	m_fGravityStrength = 1.0f;
+
 	m_iIntegrator = IntegrationMethod::Euler;
 }
 
@@ -144,7 +147,7 @@ void MSSS::drawFrame(ID3D11DeviceContext* pd3dImmediateContext) {
 void MSSS::externalForcesCalculations(float timeElapsed) {
 	//cout << "Simulation external " << timeElapsed << endl;
 
-	m_externalForce = m_useGravity ? GRAVITY : Vec3(0, 0, 0);
+	m_externalForce = m_useGravity ? (GRAVITY * m_fGravityStrength) : Vec3(0, 0, 0);
 }
 
 void MSSS::simulateTimestep(float timeStep) {
@@ -198,7 +201,7 @@ void MSSS::integratePosition(Vec3 acceleration, Vec3& velocity, Vec3& position, 
 		Integrators::ExplicitEuler::integratePositionVelocity(acceleration, velocity, position, dt);
 		break;
 	case MIDPOINT:
-		Integrators::Midpoint::integratePositionVelocity(acceleration, velocity, position, otherPos, spring, mass, dt);
+		Integrators::Midpoint::integratePositionVelocity(acceleration, velocity, position, otherPos, spring, mass, dt, m_externalForce);
 		break;
 	case LEAPFROG:
 		Integrators::LeapFrog::integratePositionVelocity(acceleration, velocity, position, dt);
