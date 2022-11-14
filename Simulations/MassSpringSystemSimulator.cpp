@@ -25,11 +25,8 @@ void MSSS::notifyCaseChanged(int testCase) {
 
 	switch (testCase) {
 	case 0:
-
-		break;
-	case 1:
 		m_iIntegrator = IntegrationMethod::Euler;
-	case 2:
+	case 1:
 		m_iIntegrator = IntegrationMethod::Midpoint;
 
 		setMass(10);
@@ -40,7 +37,7 @@ void MSSS::notifyCaseChanged(int testCase) {
 		addSpring(0, 1, 1);
 
 		break;
-	case 3:
+	case 2:
 		m_iIntegrator = IntegrationMethod::Leapfrog;
 
 
