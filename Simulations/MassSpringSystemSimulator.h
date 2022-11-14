@@ -61,10 +61,13 @@ private:
 
 	bool m_useGravity;
 	bool m_useGroundCollider;
-
+	//Mouse Input
+	bool m_leftClick;
 
 	std::vector<MassPoint> m_massPoints;
 	std::vector<Spring> m_springs;
+
+
 
 	// UI Attributes
 	Vec3 m_externalForce;

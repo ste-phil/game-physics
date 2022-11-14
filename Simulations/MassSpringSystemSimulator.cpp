@@ -52,6 +52,7 @@ void MSSS::notifyCaseChanged(int testCase) {
 		int massPointIdx = 0;
 		for (int i = 0; i < 5; i++)
 		{
+			//Create Cloth
 			for (int j = 0; j < 5; j++)
 			{
 				addMassPoint(Vec3(i * defaultJointDistance, 0, j * defaultJointDistance), Vec3(0, 0, 0), false);
@@ -64,7 +65,36 @@ void MSSS::notifyCaseChanged(int testCase) {
 				massPointIdx++;
 			}
 		}
+		//Create Cube
+		int p0 = addMassPoint(Vec3(0,0,0), Vec3(0,1,0), false);
+		int p1 = addMassPoint(Vec3(0.25, 0, 0), Vec3(0, 1, 0), false);
+		int p2 = addMassPoint(Vec3(-0.25, 0, 0), Vec3(0, 1, 0), false);
+		int p3 = addMassPoint(Vec3(0, 0, 0.25), Vec3(0, 1, 0), false);
+		int p4 = addMassPoint(Vec3(0, 0, -0.25), Vec3(0, 1, 0), false);
+		int p5 = addMassPoint(Vec3(0, 0.25, 0), Vec3(0, 1, 0), true);
+		int p6 = addMassPoint(Vec3(0, -0.25, 0), Vec3(0, 1, 0), false);
 
+		addSpring(p0, p1, 0.5);
+		addSpring(p0, p2, 0.5);
+		addSpring(p0, p3, 0.5);
+		addSpring(p0, p4, 0.5);
+		addSpring(p0, p5, 0.5);
+		addSpring(p0, p6, 0.5);
+
+		addSpring(p1, p3, 0.5);
+		addSpring(p1, p4, 0.5);
+		addSpring(p1, p5, 0.5);
+		addSpring(p1, p6, 0.5);
+
+		addSpring(p2, p3, 0.5);
+		addSpring(p2, p4, 0.5);
+		addSpring(p2, p5, 0.5);
+		addSpring(p2, p6, 0.5);
+
+		addSpring(p3, p5, 0.5);
+		addSpring(p3, p6, 0.5);
+		addSpring(p4, p5, 0.5);
+		addSpring(p4, p6, 0.5);
 
 		break;
 	}
@@ -141,9 +171,9 @@ void MSSS::simulateTimestep(float timeStep) {
 		cout << "Force: " << force << endl;
 		cout << "Pos1: " << mp1.position << ", Acc1: " << acc1 << endl;
 		cout << "Pos2: " << mp2.position << ", Acc2: " << acc2 << endl;*/
-
-		integratePosition(acc1, mp1.velocity, mp1.position, mp2.position, spring, mp1.mass, timeStep);
-		integratePosition(acc2, mp2.velocity, mp2.position, mp1.position, spring, mp2.mass, timeStep);
+		if(!mp1.isFixed()) integratePosition(acc1, mp1.velocity, mp1.position, mp2.position, spring, mp1.mass, timeStep);			
+		if(!mp2.isFixed()) integratePosition(acc2, mp2.velocity, mp2.position, mp1.position, spring, mp2.mass, timeStep);
+			
 	}
 
 	for (size_t i = 0; i < m_massPoints.size(); i++)
