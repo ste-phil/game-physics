@@ -56,7 +56,7 @@ private:
 	// Data Attributes
 	float m_fMass;
 	float m_fStiffness;
-	float m_fDamping = .001f;
+	float m_fDamping;
 	IntegrationMethod m_iIntegrator;
 
 	bool m_useGravity;

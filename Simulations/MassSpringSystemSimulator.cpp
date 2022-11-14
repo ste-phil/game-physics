@@ -4,7 +4,7 @@
 using MSSS = MassSpringSystemSimulator;
 
 #pragma region UI Function
-const char* MSSS::getTestCasesStr() { return "Demo1,Demo2,Demo3,Demo4"; }
+const char* MSSS::getTestCasesStr() { return "Demo2,Demo3,Demo4"; }
 
 void MSSS::initUI(DrawingUtilitiesClass* DUC) {
 	this->DUC = DUC;
@@ -66,13 +66,13 @@ void MSSS::notifyCaseChanged(int testCase) {
 			}
 		}
 		//Create Cube
-		int p0 = addMassPoint(Vec3(0,0,0), Vec3(0,1,0), false);
-		int p1 = addMassPoint(Vec3(0.25, 0, 0), Vec3(0, 1, 0), false);
-		int p2 = addMassPoint(Vec3(-0.25, 0, 0), Vec3(0, 1, 0), false);
-		int p3 = addMassPoint(Vec3(0, 0, 0.25), Vec3(0, 1, 0), false);
-		int p4 = addMassPoint(Vec3(0, 0, -0.25), Vec3(0, 1, 0), false);
-		int p5 = addMassPoint(Vec3(0, 0.25, 0), Vec3(0, 1, 0), true);
-		int p6 = addMassPoint(Vec3(0, -0.25, 0), Vec3(0, 1, 0), false);
+		int p0 = addMassPoint(Vec3(0,0,0), Vec3(0,0,0), false);
+		int p1 = addMassPoint(Vec3(0.25, 0, 0), Vec3(0, 0, 0), false);
+		int p2 = addMassPoint(Vec3(-0.25, 0, 0), Vec3(0, 0, 0), false);
+		int p3 = addMassPoint(Vec3(0, 0, 0.25), Vec3(0, 0, 0), false);
+		int p4 = addMassPoint(Vec3(0, 0, -0.25), Vec3(0, 0, 0), false);
+		int p5 = addMassPoint(Vec3(0, 0.25, 0), Vec3(0, 0, 0), true);
+		int p6 = addMassPoint(Vec3(0, -0.25, 0), Vec3(0, 0, 0), false);
 
 		addSpring(p0, p1, 0.5);
 		addSpring(p0, p2, 0.5);
@@ -114,7 +114,7 @@ void MSSS::onMouse(int x, int y) {
 MSSS::MassSpringSystemSimulator() {
 	setMass(1.f);
 	setStiffness(.1f);
-	setDampingFactor(.1f);
+	setDampingFactor(.001f);
 	m_iIntegrator = IntegrationMethod::Euler;
 }
 
