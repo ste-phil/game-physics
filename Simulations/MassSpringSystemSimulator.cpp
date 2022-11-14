@@ -17,6 +17,8 @@ void MSSS::initUI(DrawingUtilitiesClass* DUC) {
 	TwAddVarRW(DUC->g_pTweakBar, "Ground Collider", TW_TYPE_BOOLCPP, &m_useGroundCollider, "");
 	TwAddVarRW(DUC->g_pTweakBar, "Gravity", TW_TYPE_BOOLCPP, &m_useGravity, "");
 
+	TwAddVarRW(DUC->g_pTweakBar, "Ignore Mouse Input", TW_TYPE_BOOLCPP, &m_ignoreMouseInput, "");
+
 	TwType TW_TYPE_INTEGRATORS = TwDefineEnumFromString("Integrators", "Euler,Leapfrog,Midpoint");
 	TwAddVarRW(DUC->g_pTweakBar, "Integrator", TW_TYPE_INTEGRATORS, &m_iIntegrator, "");
 }
@@ -47,6 +49,7 @@ void MSSS::notifyCaseChanged(int testCase) {
 		const float defaultJointDistance = .4f;
 		const float defaultLength = .29f;
 
+		#pragma region CLOTH
 		int massPointIdx = 0;
 		for (int i = 0; i < 5; i++)
 		{
@@ -63,6 +66,9 @@ void MSSS::notifyCaseChanged(int testCase) {
 				massPointIdx++;
 			}
 		}
+		#pragma endregion
+
+		#pragma region CUBE
 		//Create Cube
 		int p0 = addMassPoint(Vec3(0,0,0), Vec3(0,0,0), false);
 		int p1 = addMassPoint(Vec3(0.25, 0, 0), Vec3(0, 0, 0), false);
@@ -72,12 +78,12 @@ void MSSS::notifyCaseChanged(int testCase) {
 		int p5 = addMassPoint(Vec3(0, 0.25, 0), Vec3(0, 0, 0), true);
 		int p6 = addMassPoint(Vec3(0, -0.25, 0), Vec3(0, 0, 0), false);
 
-		addSpring(p0, p1, 0.5);
-		addSpring(p0, p2, 0.5);
-		addSpring(p0, p3, 0.5);
-		addSpring(p0, p4, 0.5);
-		addSpring(p0, p5, 0.5);
-		addSpring(p0, p6, 0.5);
+		addSpring(p0, p1, 0.25);
+		addSpring(p0, p2, 0.25);
+		addSpring(p0, p3, 0.25);
+		addSpring(p0, p4, 0.25);
+		addSpring(p0, p5, 0.25);
+		addSpring(p0, p6, 0.25);
 
 		addSpring(p1, p3, 0.5);
 		addSpring(p1, p4, 0.5);
@@ -93,17 +99,25 @@ void MSSS::notifyCaseChanged(int testCase) {
 		addSpring(p3, p6, 0.5);
 		addSpring(p4, p5, 0.5);
 		addSpring(p4, p6, 0.5);
+#pragma endregion
 
 		break;
 	}
 }
 
 void MSSS::onClick(int x, int y) {
-
+	if (m_ignoreMouseInput) return;
+	m_trackmouse.x = x;
+	m_trackmouse.y = y;
+	m_mousePressed = true;
 }
 
 void MSSS::onMouse(int x, int y) {
-
+	m_oldtrackmouse.x = x;
+	m_oldtrackmouse.y = y;
+	m_trackmouse.x = x;
+	m_trackmouse.y = y;
+	m_mousePressed = false;
 }
 #pragma endregion
 
@@ -141,6 +155,23 @@ void MSSS::drawFrame(ID3D11DeviceContext* pd3dImmediateContext) {
 		DUC->drawLine(mp1.position, Vec3(1), mp2.position, Vec3(1));
 		DUC->endLine();
 	}
+	if (m_mousePressed && !m_ignoreMouseInput)
+	{
+		//Get Difference in Mouse Movement
+		Point2D mouseDiff;
+		mouseDiff.x = m_trackmouse.x - m_oldtrackmouse.x;
+		mouseDiff.y = m_trackmouse.y - m_oldtrackmouse.y;
+		//Get Position of Mouse Cursor in 3D space, scaled down
+		Vec3 mouseVector = ViewportToWorldpoint(mouseDiff) * 0.001f;
+		mouseVector.y *= -1;
+		//Draw Mouse Vector as Visual Guide
+		DUC->drawSphere(mouseVector, Vec3(sphereSize));
+		DUC->beginLine();
+		DUC->drawLine(Vec3(0,0,0), Vec3(1,1,0), mouseVector, Vec3(1,1,0));
+		DUC->endLine();
+	}
+	
+	
 }
 
 
@@ -166,14 +197,16 @@ void MSSS::simulateTimestep(float timeStep) {
 
 		auto acc1 = (-force + externalForce) / mp1.mass;
 		auto acc2 = (force + externalForce) / mp1.mass;
-
+		
+		auto worldInput = calculateWorldInput();
 		/*cout << "Length: " << length << endl;
 		cout << "Force: " << force << endl;
 		cout << "Pos1: " << mp1.position << ", Acc1: " << acc1 << endl;
 		cout << "Pos2: " << mp2.position << ", Acc2: " << acc2 << endl;*/
 		if(!mp1.isFixed()) integratePosition(acc1, mp1.velocity, mp1.position, mp2.position, spring, mp1.mass, timeStep);			
 		if(!mp2.isFixed()) integratePosition(acc2, mp2.velocity, mp2.position, mp1.position, spring, mp2.mass, timeStep);
-			
+		mp1.position += worldInput;
+		mp1.position += worldInput;
 	}
 
 	for (size_t i = 0; i < m_massPoints.size(); i++)
@@ -219,7 +252,30 @@ Vec3 MSSS::calculateElasticForce(const MassPoint& mp1, const MassPoint& mp2, con
 	return force;
 }
 
+Vec3 MSSS::calculateWorldInput() 
+{
+	// Apply the mouse deltas to g_vfMovableObjectPos (move along cameras view plane)
+	Point2D mouseDiff;
+	mouseDiff.x = m_trackmouse.x - m_oldtrackmouse.x;
+	mouseDiff.y = m_trackmouse.y - m_oldtrackmouse.y;
+	if (mouseDiff.x != 0 || mouseDiff.y != 0)
+	{
+		Vec3 inputWorld = ViewportToWorldpoint(mouseDiff);
+		// find a proper scale!
+		float inputScale = 0.000001f;
+		inputWorld = inputWorld * inputScale;
+		return inputWorld;
+	}
+	return Vec3(0, 0, 0);
+}
 
+Vec3 MSSS::ViewportToWorldpoint(Point2D mouse)
+{
+	Mat4 worldViewInv = Mat4(DUC->g_camera.GetWorldMatrix() * DUC->g_camera.GetViewMatrix());
+	worldViewInv = worldViewInv.inverse();
+	Vec3 inputView = Vec3(mouse.x, mouse.y, 0);
+	return worldViewInv.transformVectorNormal(inputView);
+}
 #pragma endregion
 
 // Specific Functions

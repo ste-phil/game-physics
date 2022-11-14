@@ -53,6 +53,9 @@ private:
 		const Spring& spring, const float mass, float dt);
 	Vec3 calculateElasticForce(const MassPoint& mp1, const MassPoint& mp2, const Spring& spring);
 	
+	Vec3 calculateWorldInput();
+	Vec3 ViewportToWorldpoint(Point2D mouse);
+
 	// Data Attributes
 	float m_fMass;
 	float m_fStiffness;
@@ -62,13 +65,13 @@ private:
 
 	bool m_useGravity;
 	bool m_useGroundCollider;
-	//Mouse Input
-	bool m_leftClick;
+
+	bool m_ignoreMouseInput;
 
 	std::vector<MassPoint> m_massPoints;
 	std::vector<Spring> m_springs;
 
-
+	bool m_mousePressed;
 
 	// UI Attributes
 	Vec3 m_externalForce;
