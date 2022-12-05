@@ -2,6 +2,7 @@
 #define RIGIDBODYSYSTEMSIMULATOR_h
 #include "Simulator.h"
 #include "Entities.h"
+#include "collisionDetect.h"
 
 //add your header for your rigid body system, for e.g.,
 //#include "rigidBodySystem.h" 
@@ -35,7 +36,7 @@ public:
 	void setVelocityOf(int i, Vec3 velocity);
 	
 private:
-	void FindCollisions(const std::vector<Collision>& collisions);
+	void FindCollisions(std::vector<Collision>& collisions);
 
 	// Attributes
 	// add your RigidBodySystem data members, for e.g.,
@@ -46,8 +47,8 @@ private:
 	bool m_useGravity;
 	bool m_useGroundCollider;
 
-	float m_angularVelocityDamping = .8f;
-	float m_velocityDamping = .8f;
+	float m_angularVelocityDamping = .95f;
+	float m_velocityDamping = .95f;
 
 	// UI Attributes
 	Point2D m_mouse;

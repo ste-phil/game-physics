@@ -10,10 +10,12 @@ namespace GamePhysics {
 		Vec3 position;
 		Quat rotation;
 		Vec3 velocity;
-		Vec3 angularVelocity;
 		double mass;
 		matrix4x4<double> inertia;
-
+		
+		Vec3 torque;
+		Vec3 angularMomentum;
+		Vec3 angularVelocity;
 
 		void PrecomputeInertia() {
 			constexpr double div = 1 / 12.0;

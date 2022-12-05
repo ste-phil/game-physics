@@ -329,7 +329,7 @@ namespace collisionTools{
 		}
 		// if we get here then we know that every axis had overlap on it
 		// so we can guarantee an intersection
-		XMVECTOR normal;
+		XMVECTOR normal = XMVectorZero();
 		switch (fromWhere){
 		case 0:{
 				   normal = axis;

@@ -88,7 +88,7 @@ class matrix4x4
 		inline void initScaling(Scalar scale);
 		inline void initScaling(Scalar x, Scalar y, Scalar z);
 		//trs
-		inline void initTRS(const Vec3& position, const Vec3& rotation, const Vec3& scale);
+		inline void initTRS(const Vec3& position, const matrix4x4<Scalar>& rotation, const Vec3& scale);
 
 
 		inline Vec3 transformVectorNormal(Vec3 v);
@@ -618,19 +618,16 @@ matrix4x4<Scalar>::operator*( const vector3Dim<Scalar>& v) const
 
 //! init rotation matrix
 template<class Scalar>
-inline void matrix4x4<Scalar>::initTRS(const Vec3& position, const Vec3& rotation, const Vec3& scale)
+inline void matrix4x4<Scalar>::initTRS(const Vec3& position, const matrix4x4<Scalar>& rotation, const Vec3& scale)
 {
 	//(*this) = (Scalar)(0.0);
 	auto scaleMat = matrix4x4<Scalar>();
 	scaleMat.initScaling(scale.x, scale.y, scale.z);
 	
-	auto rot = matrix4x4<Scalar>();
-	rot.initRotationXYZ(rotation.x, rotation.y, rotation.z);
-	
 	auto pos = matrix4x4<Scalar>();
 	pos.initTranslation(position.x, position.y, position.z);
 
-	(*this) = scaleMat * rot * pos;
+	(*this) = scaleMat * rotation * pos;
 }
 
 //! init identity matrix
