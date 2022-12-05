@@ -9,13 +9,19 @@ namespace GamePhysics {
 		Vec3 size;
 		Vec3 position;
 		Quat rotation;
-		Vec3 velocity;
+
 		double mass;
+
 		matrix4x4<double> inertia;
+		matrix4x4<double> inverseInertia;
+
+		Vec3 velocity;
 		
 		Vec3 torque;
 		Vec3 angularMomentum;
 		Vec3 angularVelocity;
+
+		Vec3 force;
 
 		void PrecomputeInertia() {
 			constexpr double div = 1 / 12.0;
@@ -25,14 +31,15 @@ namespace GamePhysics {
 			double zi = div * mass * (size.y * size.y + size.x * size.x);
 			
 			inertia.initScaling(xi, yi, zi);
+			inverseInertia.initScaling(1. / xi, 1. / yi, 1. / zi);
 		}
 
-		matrix4x4<double> GetCurrentInertiaTensor() {
+		matrix4x4<double> GetCurrentInverseInertiaTensor() {
 			auto rot = rotation.getRotMat();
 			auto rotInv = rot;
 			rotInv.transpose();
 
-			return rot * inertia * rotInv;
+			return rotInv * inverseInertia * rot;
 		}
 	};
 

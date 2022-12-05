@@ -2,6 +2,8 @@
 
 using RBSS = RigidBodySystemSimulator;
 
+//TODO: make it work
+//@Tutor: its not working correctly as of now :/
 
 void RBSS::onClick(int x, int y) {
 	if (m_ignoreMouseInput) return;
@@ -9,6 +11,8 @@ void RBSS::onClick(int x, int y) {
 	m_trackmouse.y = y;
 	m_mousePressed = true;
 
+	//cout << "Force applied " << "\n";
+	//applyForceOnBody(0, Vec3(0.4, 0.25, 0.25), Vec3(0, 0, 1));
 }
 
 
@@ -22,7 +26,7 @@ void RBSS::onMouse(int x, int y) {
 
 // Functions
 const char* RBSS::getTestCasesStr(){
-	return "Demo2,Demo3,Demo4";
+	return "Demo2,Demo3,Demo4,SimpleRotationY,SimpleRotationZ";
 }
 
 void RBSS::initUI(DrawingUtilitiesClass* DUC){
@@ -47,10 +51,12 @@ double deg2rad(double x) {
 void RBSS::notifyCaseChanged(int testCase) {
 	reset();
 
+	const float boxSize = .2f;
+
 	switch (testCase) {
 	case 0:
 		addRigidBody(Vec3(0, 0, 0), Vec3(1, 0.6, 0.5), 2);
-		setOrientationOf(0, Quat(0, 0, deg2rad(9090)));
+		setOrientationOf(0, Quat(0, 0, deg2rad(90)));
 		applyForceOnBody(0, Vec3(0.3, 0.5, 0.25), Vec3(1, 1, 0));
 
 		break;
@@ -63,15 +69,24 @@ void RBSS::notifyCaseChanged(int testCase) {
 
 		break;
 	case 2:
-		const float boxSize = .2f;
 
 		addRigidBody(Vec3(1, 0, 0), Vec3(boxSize, boxSize, boxSize), 2);
 		addRigidBody(Vec3(0, 1, 0), Vec3(boxSize, boxSize * 2.0f, boxSize), 2);
 		addRigidBody(Vec3(0, 0, 0), Vec3(boxSize, boxSize, boxSize), 2);
 		addRigidBody(Vec3(1, 1, 0), Vec3(boxSize, boxSize, boxSize), 2);
 		break;
+	case 3:
+		addRigidBody(Vec3(0, 0, 0), Vec3(1, 0.5, 0.5), 2);
+		//setOrientationOf(0, Quat(0, deg2rad(90), 0));
+		applyForceOnBody(0, Vec3(.4, 0.25, 0.25), Vec3(0, 0, 10));
+		break;
+	case 4:
+		addRigidBody(Vec3(0, 0, 0), Vec3(1, 0.5, 0.5), 2);
+		//setOrientationOf(0, Quat(0, deg2rad(90), 0));
+		applyForceOnBody(0, Vec3(.5, .25, 0), Vec3(0, 10, 0));
+		break;
 	}
-
+	
 
 	for (size_t i = 0; i < m_rigidbodies.size(); i++)
 	{
@@ -200,8 +215,8 @@ void RBSS::simulateTimestep(float timeStep){
 
 		//J formula
 		const float c = 0.5f;
-		auto inertiaRb1 = rb1.GetCurrentInertiaTensor();
-		auto inertiaRb2 = rb2.GetCurrentInertiaTensor();
+		auto inertiaRb1 = rb1.GetCurrentInverseInertiaTensor();
+		auto inertiaRb2 = rb2.GetCurrentInverseInertiaTensor();
 
 		auto inertiaInverseRb1 = inertiaRb1;
 		auto inertiaInverseRb2 = inertiaRb2;
@@ -216,9 +231,9 @@ void RBSS::simulateTimestep(float timeStep){
 			(1.0f / rb2.mass) + 
 			dot(
 				(cross(
-					inertiaInverseRb1.transformVector(cross1), rb1.position)) +
+					inertiaRb1.transformVector(cross1), rb1.position)) +
 				(cross(
-					inertiaInverseRb2.transformVector(cross2), rb2.position)),
+					inertiaRb2.transformVector(cross2), rb2.position)),
 				col.normal
 			);
 		float j = nominator / denominator;
@@ -247,14 +262,45 @@ void RBSS::simulateTimestep(float timeStep){
 		auto& rb = m_rigidbodies[i];
 
 		//apply external forces
-		auto force = m_externalForce;
+		//auto force = m_externalForce;
 
-		//Integrate
+		//Apply forces
+		//auto linearAcceleration = rb.force / rb.mass;
+
+		rb.angularMomentum += timeStep * rb.torque;
+
+		rb.torque = 0;
+		//rb.force = 0;
+
+		//Integrate linear velocity
+		//rb.velocity += linearAcceleration * timeStep;
 		rb.position += rb.velocity * timeStep;
 
-		//rb.angularMomentum += timeStep * rb.torque;
-		auto inverseInertia = rb.GetCurrentInertiaTensor();
+		//Integrate angular velocity
+		auto inverseInertia = rb.GetCurrentInverseInertiaTensor();
 		rb.angularVelocity = inverseInertia.transformVector(rb.angularMomentum);
+
+		//auto rotMat = rb.rotation.getRotMat();
+		//
+		//auto dt = timeStep;
+		//matrix4x4<double> m;
+		//double arr[16] = {
+		//	0.									, dt * -rb.angularVelocity.z		, dt * rb.angularVelocity.y		, 0.,
+		//	dt* rb.angularVelocity.z			, 0									, dt * -rb.angularVelocity.x	, 0.,
+		//	dt* -rb.angularVelocity.y			, dt * rb.angularVelocity.x			, 0								, 0.,
+		//	0									, 0									, 0								, 1.
+		//};
+		//m.initFromArray(arr);
+
+		//auto newRot = rotMat + rotMat * m;
+		//Vec3 trans;
+		//Vec3 scale;
+		//Vec3 rot;
+		//Vec3 shear;
+		//newRot.decompose(trans, scale, rot, shear);
+
+		//rb.rotation = Quat(rot.x, rot.y, rot.z);
+
 
 		auto rotQuat = Quat(0, rb.angularVelocity.x, rb.angularVelocity.y, rb.angularVelocity.z);
 		rb.rotation = (rb.rotation + (timeStep * .5 * rotQuat * rb.rotation));
@@ -262,28 +308,28 @@ void RBSS::simulateTimestep(float timeStep){
 		
 
 		//Apply mouse input
-		if (m_mousePressed && !m_ignoreMouseInput)
-		{
-			//Get Difference in Mouse Movement
-			Point2D mouseDiff;
-			mouseDiff.x = m_trackmouse.x - m_oldtrackmouse.x;
-			mouseDiff.y = m_trackmouse.y - m_oldtrackmouse.y;
-			//Get Position of Mouse Cursor in 3D space, scaled down
-			Vec3 mouseVector = ViewportToWorldpoint(DUC->g_camera.GetWorldMatrix(), DUC->g_camera.GetViewMatrix(), mouseDiff) * 0.001f;
-			mouseVector.y *= -1;
+		//if (m_mousePressed && !m_ignoreMouseInput)
+		//{
+		//	//Get Difference in Mouse Movement
+		//	Point2D mouseDiff;
+		//	mouseDiff.x = m_trackmouse.x - m_oldtrackmouse.x;
+		//	mouseDiff.y = m_trackmouse.y - m_oldtrackmouse.y;
+		//	//Get Position of Mouse Cursor in 3D space, scaled down
+		//	Vec3 mouseVector = ViewportToWorldpoint(DUC->g_camera.GetWorldMatrix(), DUC->g_camera.GetViewMatrix(), mouseDiff) * 0.001f;
+		//	mouseVector.y *= -1;
 
-			cout << "mousevec: " << mouseVector << "\n";
-			cout << "vel: " << rb.velocity << "\n";
+		//	cout << "mousevec: " << mouseVector << "\n";
+		//	cout << "vel: " << rb.velocity << "\n";
 
-			rb.velocity += mouseVector;
-		}
+		//	rb.velocity += mouseVector;
+		//}
 
 		//Apply damping
 		//rb.velocity *= m_velocityDamping;
 		/*rb.angularMomentum *= m_angularVelocityDamping;*/
 
 		//cout << "vel: " << rb.velocity << "\n";
-		cout << "ang: " << rb.angularVelocity << "\n";
+		//cout << "ang: " << rb.angularVelocity << "\n";
 
 		//cout << "vel: " << rb.velocity << "\n";
 		//cout << "angular: " << rb.angularVelocity << "\n";
@@ -342,11 +388,17 @@ Vec3 RBSS::getAngularVelocityOfRigidBody(int i){
 	return m_rigidbodies[i].angularVelocity;
 
 }
+/// <summary>
+/// Applies a force at position loc with a force of magnitude ||force|| to the object i
+/// </summary>
+/// <param name="i">the rigidbody</param>
+/// <param name="loc">loc is in local space of the object the force is beeing applied to</param>
+/// <param name="force"></param>
 void RBSS::applyForceOnBody(int i, Vec3 loc, Vec3 force){
 	auto& rb = m_rigidbodies[i];
 
-	auto torque = cross(loc, force);
-	rb.angularMomentum = torque;
+	rb.force = force;
+	rb.torque = cross(loc, force);
 }
 void RBSS::addRigidBody(Vec3 position, Vec3 size, int mass){
 	Rigidbody rb;

@@ -4,8 +4,6 @@
 #include "Entities.h"
 #include "collisionDetect.h"
 
-//add your header for your rigid body system, for e.g.,
-//#include "rigidBodySystem.h" 
 
 #define TESTCASEUSEDTORUNTEST 2
 
