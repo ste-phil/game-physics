@@ -3,6 +3,8 @@
 #include "util/matrixbase.h"
 #include "util/quaternion.h"
 namespace GamePhysics {
+	const Vec3 GRAVITY(0.f, -9.81f, 0.f);
+
 	struct Rigidbody {
 		Vec3 size;
 		Vec3 position;
@@ -20,5 +22,4 @@ namespace GamePhysics {
 		int rb1;
 		int rb2;
 	};
-
 }

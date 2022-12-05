@@ -39,7 +39,10 @@ private:
 	// add your RigidBodySystem data members, for e.g.,
 	// RigidBodySystem * m_pRigidBodySystem; 
 	Vec3 m_externalForce;
-	std::vector<Rigidbody> rigidbodies;
+
+	std::vector<Rigidbody> m_rigidbodies;
+	bool m_useGravity;
+	bool m_useGroundCollider;
 
 	// UI Attributes
 	Point2D m_mouse;
