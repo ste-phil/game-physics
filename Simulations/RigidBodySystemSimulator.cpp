@@ -22,8 +22,6 @@ void RBSS::onMouse(int x, int y) {
 	m_mousePressed = false;
 }
 
-
-
 // Functions
 const char* RBSS::getTestCasesStr(){
 	return "Demo2,Demo3,Demo4";
@@ -219,6 +217,25 @@ void RBSS::simulateTimestep(float timeStep){
 
 	}
 }
+
+void RBSS::FindCollisions(const std::vector<Collision>& collisions) {
+
+	//collision between rb <-> rb
+	for (size_t i = 0; i < m_rigidbodies.size(); i++)
+	{
+		for (size_t j = i + 1; j < m_rigidbodies.size(); j++)
+		{
+
+		}
+	}
+
+	//collision between rb <-> ground
+	for (size_t i = 0; i < m_rigidbodies.size(); i++)
+	{
+
+	}
+}
+
 
 
 #pragma region ExtraFunctions
