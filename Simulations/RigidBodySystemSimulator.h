@@ -11,7 +11,7 @@
 class RigidBodySystemSimulator:public Simulator{
 public:
 	// Construtors
-	RigidBodySystemSimulator();
+	RigidBodySystemSimulator() {}
 	
 	// Functions
 	const char * getTestCasesStr();
@@ -44,9 +44,14 @@ private:
 	bool m_useGravity;
 	bool m_useGroundCollider;
 
+	float m_angularVelocityDamping = .8f;
+	float m_velocityDamping = .8f;
+
 	// UI Attributes
 	Point2D m_mouse;
 	Point2D m_trackmouse;
 	Point2D m_oldtrackmouse;
+	bool m_mousePressed;
+	bool m_ignoreMouseInput;
 	};
 #endif

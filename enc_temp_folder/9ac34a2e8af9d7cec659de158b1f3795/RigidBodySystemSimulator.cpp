@@ -8,9 +8,6 @@ void RBSS::onClick(int x, int y) {
 	m_trackmouse.x = x;
 	m_trackmouse.y = y;
 	m_mousePressed = true;
-
-
-
 }
 
 
@@ -174,12 +171,6 @@ void RBSS::simulateTimestep(float timeStep){
 	for (size_t i = 0; i < m_rigidbodies.size(); i++)
 	{
 		auto& rb = m_rigidbodies[i];
-
-		//apply external forces
-
-		auto force = m_externalForce;
-
-
 
 		rb.position += rb.velocity * timeStep;
 
