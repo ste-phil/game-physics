@@ -87,8 +87,6 @@ class matrix4x4
 		//! init scaling matrix
 		inline void initScaling(Scalar scale);
 		inline void initScaling(Scalar x, Scalar y, Scalar z);
-		//trs
-		inline void initTRS(const Vec3& position, const matrix4x4<Scalar>& rotation, const Vec3& scale);
 
 
 		inline Vec3 transformVectorNormal(Vec3 v);
@@ -616,20 +614,6 @@ matrix4x4<Scalar>::operator*( const vector3Dim<Scalar>& v) const
 // Other helper functions
 //------------------------------------------------------------------------------
 
-//! init rotation matrix
-template<class Scalar>
-inline void matrix4x4<Scalar>::initTRS(const Vec3& position, const matrix4x4<Scalar>& rotation, const Vec3& scale)
-{
-	//(*this) = (Scalar)(0.0);
-	auto scaleMat = matrix4x4<Scalar>();
-	scaleMat.initScaling(scale.x, scale.y, scale.z);
-	
-	auto pos = matrix4x4<Scalar>();
-	pos.initTranslation(position.x, position.y, position.z);
-
-	(*this) = scaleMat * rotation * pos;
-}
-
 //! init identity matrix
 template<class Scalar>
 inline void matrix4x4<Scalar>::initId()
@@ -662,8 +646,8 @@ matrix4x4<Scalar>::initRotationX(Scalar rot)
 
 	this->initId();
 	value[1][1] = (Scalar)  cos(drot);
-	value[1][2] = (Scalar)  sin(drot);
-	value[2][1] = (Scalar)(-sin(drot));
+	value[2][1] = (Scalar)  sin(drot);
+	value[1][2] = (Scalar)(-sin(drot));
 	value[2][2] = (Scalar)  cos(drot);
 }
 template<class Scalar>
@@ -675,8 +659,8 @@ matrix4x4<Scalar>::initRotationY(Scalar rot)
 
 	this->initId();
 	value[0][0] = (Scalar)  cos(drot);
-	value[0][2] = (Scalar)(-sin(drot));
-	value[2][0] = (Scalar)  sin(drot);
+	value[2][0] = (Scalar)(-sin(drot));
+	value[0][2] = (Scalar)  sin(drot);
 	value[2][2] = (Scalar)  cos(drot);
 }
 template<class Scalar>
@@ -688,8 +672,8 @@ matrix4x4<Scalar>::initRotationZ(Scalar rot)
 
 	this->initId();
 	value[0][0] = (Scalar)  cos(drot);
-	value[0][1] = (Scalar)  sin(drot);
-	value[1][0] = (Scalar)(-sin(drot));
+	value[1][0] = (Scalar)  sin(drot);
+	value[0][1] = (Scalar)(-sin(drot));
 	value[1][1] = (Scalar)  cos(drot);
 }
 template<class Scalar>
