@@ -17,6 +17,7 @@ public:
 		_values.resize(x * y);
 	}
 
+	std::vector<T>& GetValues() { return _values; };
 	uint32_t GetSizeX() { return _sizeX; };
 	uint32_t GetSizeY() { return _sizeY; };
 
@@ -50,8 +51,8 @@ public:
 	void onMouse(int x, int y);
 	// Specific Functions
 	void drawObjects();
-	Grid<double> diffuseTemperatureExplicit(float timeStep);
-	void diffuseTemperatureImplicit();
+	Grid<double> diffuseTemperatureExplicit(float timestep);
+	Grid<double> diffuseTemperatureImplicit(float timestep);
 
 private:
 	// Functions
