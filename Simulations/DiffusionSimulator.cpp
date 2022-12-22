@@ -193,7 +193,7 @@ Grid<double> DiffusionSimulator::diffuseTemperatureImplicit(float timestep) {//a
 	SparsePCGSolver<Real> solver;
 	solver.set_solver_parameters(pcg_target_residual, pcg_max_iterations, 0.97, 0.25);
 
-	auto newT = Grid<double>(T.GetSizeX(), T.GetSizeX());
+	auto newT = Grid<double>(T.GetSizeX(), T.GetSizeY());
 	std::vector<Real>& x = newT.GetValues();
 	//for (int j = 0; j < n; ++j) { x[j] = 0.; }
 
@@ -221,7 +221,7 @@ void DiffusionSimulator::drawObjects()
 		{
 			Vec3 pos(
 				((float)x - sizeX / 2) * sphereSize,
-				((float)y - sizeX / 2) * sphereSize,
+				((float)y - sizeY / 2) * sphereSize,
 				0
 			);
 
